@@ -53,34 +53,52 @@ export default function CropCalculator() {
   const totalWaste = wastePerTonne
     ? calculatedTotalWeight * (wastePerTonne / 1000)
     : 0;
-    const netWeight = calculatedTotalWeight - totalWaste -bags * wastage;
+  const netWeight = calculatedTotalWeight - totalWaste - bags * wastage;
 
-    const netAmount =
-      priceType === "pricePerBag"
-        ? bags * pricePerBag
-        : (netWeight / 860) * totalAmountForPutti;
-  
-    const finalAmount = netAmount - cuttingHours * cuttingPricePerHour;
+  const netAmount =
+    priceType === "pricePerBag"
+      ? bags * pricePerBag
+      : (netWeight / 860) * totalAmountForPutti;
+
+  const finalAmount = netAmount - cuttingHours * cuttingPricePerHour;
 
   const handleGeneratePDF = async () => {
     try {
       const input = pdfRef.current;
       if (!input) return;
+
+      // Hide the download button and close button before capturing the screenshot
+      const downloadButton = input.querySelector("#download-btn");
+      const closeButton = input.querySelector("#close-btn");
+
+      if (downloadButton) downloadButton.style.display = "none";
+      if (closeButton) closeButton.style.display = "none";
+
+      // Capture the screenshot
       const canvas = await html2canvas(input, {
         scale: 2,
         backgroundColor: "#ffffff",
         useCORS: true,
       });
 
+      // Show the buttons again after capturing
+      if (downloadButton) downloadButton.style.display = "block";
+      if (closeButton) closeButton.style.display = "block";
+
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(18);
       pdf.text("Crop Amount Calculation", 10, 15);
+
       const imgWidth = 180;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       pdf.addImage(imgData, "PNG", 10, 25, imgWidth, imgHeight);
+
       pdf.save("Crop_Amount_Calculation.pdf");
+
+      // Close the modal after download
+      setShowModal(false);
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
@@ -104,15 +122,15 @@ export default function CropCalculator() {
 
   return (
     <div className="min-h-screen bg-[#1a202c] text-white flex flex-col items-center justify-center p-6">
-       <div className="flex justify-center mb-4">
-          <Image
-            src="/VijayLogo.jpg"
-            alt="Vijay Kumar Pydi Logo"
-            width={100}
-            height={100}
-            className="rounded-full shadow-lg border-4 border-blue-500"
-          />
-        </div>
+      <div className="flex justify-center mb-4">
+        <Image
+          src="/VijayLogo.jpg"
+          alt="Vijay Kumar Pydi Logo"
+          width={100}
+          height={100}
+          className="rounded-full shadow-lg border-4 border-blue-500"
+        />
+      </div>
       <h1 className="text-3xl font-extrabold mb-8 text-center">
         Crop Amount Calculator
       </h1>
@@ -314,6 +332,7 @@ export default function CropCalculator() {
             ref={pdfRef}
           >
             <button
+              id="close-btn"
               onClick={() => setShowModal(false)}
               className="absolute top-4 right-4 text-2xl font-bold text-gray-600 hover:text-gray-800"
             >
@@ -339,7 +358,8 @@ export default function CropCalculator() {
               <span className="font-semibold">{bags * wastage} kg</span>
             </p>
             <p className="mb-2">
-              Net Amount: <span className="font-semibold">₹{netAmount.toFixed(2)}</span>
+              Net Amount:{" "}
+              <span className="font-semibold">₹{netAmount.toFixed(2)}</span>
             </p>
             <p className="mb-2">
               Crop Cutting Cost:{" "}
@@ -352,6 +372,7 @@ export default function CropCalculator() {
               <span className="text-green-700">₹{finalAmount.toFixed(2)}</span>
             </p>
             <button
+              id="download-btn"
               onClick={handleGeneratePDF}
               className="w-full bg-blue-500 py-3 rounded font-bold text-white hover:bg-blue-600 transition-colors"
             >
