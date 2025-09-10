@@ -45,6 +45,22 @@ export default function CropCalculator() {
     return time;
   };
 
+  // Helper function to format decimal hours to hours and minutes format
+  const formatHoursAndMinutes = (decimalHours) => {
+    if (!decimalHours || decimalHours === 0) return "0 hours 0 minutes";
+    
+    const hours = Math.floor(decimalHours);
+    const minutes = Math.round((decimalHours - hours) * 60);
+    
+    if (minutes === 0) {
+      return `${hours} hour${hours !== 1 ? 's' : ''}`;
+    } else if (hours === 0) {
+      return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    } else {
+      return `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -368,7 +384,7 @@ export default function CropCalculator() {
             </p>
             <p className="mb-2">
               Total Tonne Waste:{" "}
-              <span className="font-semibold">{totalWaste} kg</span>
+              <span className="font-semibold">{totalWaste.toFixed(2)} kg</span>
             </p>
             <p className="mb-2">
               Net Weight: <span className="font-semibold">{netWeight} kg</span>
@@ -387,7 +403,7 @@ export default function CropCalculator() {
             <p className="mb-2">
               Cutting Hours (converted):{" "}
               <span className="font-semibold">
-                {convertToDecimalHours(cuttingHours).toFixed(2)} hours
+                {formatHoursAndMinutes(convertToDecimalHours(cuttingHours))}
               </span>
             </p>
             <p className="mb-2">
