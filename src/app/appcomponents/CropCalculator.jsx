@@ -22,6 +22,29 @@ export default function CropCalculator() {
 
   const pdfRef = useRef(null);
 
+  // Helper function to convert hours.minutes format to decimal hours
+  const convertToDecimalHours = (timeString) => {
+    if (!timeString) return 0;
+    
+    const time = parseFloat(timeString);
+    if (isNaN(time)) return 0;
+    
+    // Check if the input has decimal places (indicating hours.minutes format)
+    const timeStr = timeString.toString();
+    if (timeStr.includes('.') && timeStr.split('.')[1]) {
+      const parts = timeStr.split('.');
+      const hours = parseInt(parts[0]) || 0;
+      const minutes = parseInt(parts[1]) || 0;
+      
+      // Convert minutes to decimal hours
+      const decimalMinutes = minutes / 60;
+      return hours + decimalMinutes;
+    }
+    
+    // If no decimal or no minutes part, treat as regular decimal hours
+    return time;
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -60,7 +83,7 @@ export default function CropCalculator() {
       ? bags * pricePerBag
       : (netWeight / 860) * totalAmountForPutti;
 
-  const finalAmount = netAmount - cuttingHours * cuttingPricePerHour;
+  const finalAmount = netAmount - convertToDecimalHours(cuttingHours) * cuttingPricePerHour;
 
   const handleGeneratePDF = async () => {
     try {
@@ -288,7 +311,7 @@ export default function CropCalculator() {
           value={cuttingHours}
           onChange={(e) => setCuttingHours(e.target.value)}
           className="w-full p-3 mb-2 rounded border border-[#4a5568] bg-gray-700 placeholder-gray-400"
-          placeholder="Enter Cutting Hours"
+          placeholder="Enter Hours (e.g., 6.40 for 6h 40min)"
         />
         {errors.cuttingHours && (
           <p className="text-red-500 text-sm mb-3">{errors.cuttingHours}</p>
@@ -362,9 +385,15 @@ export default function CropCalculator() {
               <span className="font-semibold">₹{netAmount.toFixed(2)}</span>
             </p>
             <p className="mb-2">
+              Cutting Hours (converted):{" "}
+              <span className="font-semibold">
+                {convertToDecimalHours(cuttingHours).toFixed(2)} hours
+              </span>
+            </p>
+            <p className="mb-2">
               Crop Cutting Cost:{" "}
               <span className="font-semibold">
-                ₹{cuttingHours * cuttingPricePerHour}
+                ₹{(convertToDecimalHours(cuttingHours) * cuttingPricePerHour).toFixed(2)}
               </span>
             </p>
             <p className="mb-4 text-lg font-bold">
